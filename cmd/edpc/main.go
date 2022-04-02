@@ -8,8 +8,6 @@ import (
 
 	"git.fractalqb.de/fractalqb/c4hgol"
 	"git.fractalqb.de/fractalqb/qbsllm"
-	"git.fractalqb.de/fractalqb/yacfg"
-	"github.com/CmdrVasquess/watched"
 	"github.com/CmdrVasquess/watched/jdir"
 
 	"github.com/CmdrVasquess/edpc/internal"
@@ -49,7 +47,12 @@ journal`)
 	flag.Int64Var(&config.JDirWatch.JSerial, "last-jeid", config.JDirWatch.JSerial,
 		`Set last known journal event ID. 0 loads last JEID from DB.`)
 	flag.StringVar(&config.Log, "log", "", c4hgol.LevelCfgDoc(nil))
+	cfgDump := flag.Bool("cfg-dump", false, "Dump current configuration to stdout")
 	flag.Parse()
+	if *cfgDump {
+		cmds.DumpConfig(os.Stdout, &config)
+		os.Exit(0)
+	}
 }
 
 func main() {
@@ -58,15 +61,15 @@ func main() {
 		internal.VQuality, internal.VBuildNo,
 		runtime.Version(),
 	)
-	if err := cmds.Configure(&config); yacfg.IsCode(err, yacfg.ConfigQuery) {
-		cmds.DumpConfig(os.Stdout, &config)
-		os.Exit(0)
-	} else if err != nil {
+	if err := cmds.Configure(&config); err != nil {
 		log.Fatale(err)
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc := internal.NewEDPC()
+	edpc, err := internal.NewEDPC()
+	if err != nil {
+		log.Fatale(err)
+	}
 	watchED := jdir.NewEvents(config.JournalDir, edpc, &config.JDirWatch)
 	var latestJournal string
 	if config.WatchLatest {
@@ -81,10 +84,7 @@ func main() {
 	signal.Notify(sigs, os.Interrupt)
 	<-sigs
 	log.Infos("shutting down…")
-	// if err := bcp.SetLastJEID(watchED.LastJSerial()); err != nil {
-	// 	log.Errore(err)
-	// }
-	watchED.Stop <- watched.Stop
-	<-watchED.Stop
+	watchED.Stop()
+	edpc.Close()
 	log.Infoa("o7")
 }

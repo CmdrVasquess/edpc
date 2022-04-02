@@ -5,5 +5,5 @@ const (
 	VMinor   = 1
 	VPatch   = 0
 	VQuality = `alpha`
-	VBuildNo = 1
+	VBuildNo = 10
 )

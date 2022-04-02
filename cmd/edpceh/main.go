@@ -5,8 +5,6 @@ import (
 	"os"
 	"runtime"
 
-	"git.fractalqb.de/fractalqb/yacfg"
-
 	"git.fractalqb.de/fractalqb/c4hgol"
 	"git.fractalqb.de/fractalqb/qbsllm"
 	"github.com/CmdrVasquess/edpc/internal"
@@ -23,12 +21,24 @@ var (
 	config = struct {
 		Log     string
 		EDEHNet edehnet.Receiver
-	}{}
+	}{
+		EDEHNet: edehnet.Receiver{
+			Listen: ":1337",
+		},
+	}
 )
 
 func flags() {
+	flag.StringVar(&config.EDEHNet.Listen, "l", config.EDEHNet.Listen,
+		`Set listening address`,
+	)
 	flag.StringVar(&config.Log, "log", "", c4hgol.LevelCfgDoc(nil))
+	cfgDump := flag.Bool("cfg-dump", false, "Dump current configuration to stdout")
 	flag.Parse()
+	if *cfgDump {
+		cmds.DumpConfig(os.Stdout, &config)
+		os.Exit(0)
+	}
 }
 
 func main() {
@@ -37,18 +47,19 @@ func main() {
 		internal.VQuality, internal.VBuildNo,
 		runtime.Version(),
 	)
-	if err := cmds.Configure(&config); yacfg.IsCode(err, yacfg.ConfigQuery) {
-		cmds.DumpConfig(os.Stdout, &config)
-		os.Exit(0)
-	} else if err != nil {
+	if err := cmds.Configure(&config); err != nil {
 		log.Fatale(err)
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc := internal.NewEDPC()
+	edpc, err := internal.NewEDPC()
+	if err != nil {
+		log.Fatale(err)
+	}
 	for {
 		if err := config.EDEHNet.Run(edpc); err != nil {
 			log.Errore(err)
 		}
 	}
+	defer edpc.Close()
 }
