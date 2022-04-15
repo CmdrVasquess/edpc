@@ -21,10 +21,10 @@ var (
 	)
 
 	config = struct {
-		Log         string
-		JournalDir  string
-		WatchLatest bool
-		JDirWatch   jdir.Options
+		Log        string
+		JournalDir string
+		JDirWatch  jdir.Options
+		ERAddress  string
 	}{
 		JournalDir: findJournals(),
 	}
@@ -41,11 +41,11 @@ func findJournals() string {
 func flags() {
 	flag.StringVar(&config.JournalDir, "j", config.JournalDir,
 		`Explicitly set ED directory with journal files`)
-	flag.BoolVar(&config.WatchLatest, "j-latest", config.WatchLatest,
-		`Don't wait for new journal file but start watching latest existing
-journal`)
 	flag.Int64Var(&config.JDirWatch.JSerial, "last-jeid", config.JDirWatch.JSerial,
 		`Set last known journal event ID. 0 loads last JEID from DB.`)
+	flag.StringVar(&config.ERAddress, "r", config.ERAddress,
+		`Set address of EDPCer server`,
+	)
 	flag.StringVar(&config.Log, "log", "", c4hgol.LevelCfgDoc(nil))
 	cfgDump := flag.Bool("cfg-dump", false, "Dump current configuration to stdout")
 	flag.Parse()
@@ -66,19 +66,12 @@ func main() {
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc, err := internal.NewEDPC()
+	edpc, err := internal.NewEDPC(config.ERAddress)
 	if err != nil {
 		log.Fatale(err)
 	}
 	watchED := jdir.NewEvents(config.JournalDir, edpc, &config.JDirWatch)
 	var latestJournal string
-	if config.WatchLatest {
-		var err error
-		latestJournal, err = jdir.NewestJournal(config.JournalDir)
-		if err != nil {
-			log.Fatale(err)
-		}
-	}
 	go watchED.Start(latestJournal)
 	sigs := make(chan os.Signal)
 	signal.Notify(sigs, os.Interrupt)

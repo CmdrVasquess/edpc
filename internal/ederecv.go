@@ -11,10 +11,11 @@ import (
 type EDPC struct {
 	App  ospath.App
 	Cmdr Commander
+	er   *EDPCer
 	// TODO Last Event Serial Number
 }
 
-func NewEDPC() (*EDPC, error) {
+func NewEDPC(addr string) (*EDPC, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -25,7 +26,8 @@ func NewEDPC() (*EDPC, error) {
 			"fqb", "edpc",
 		),
 	}
-	return edpc, nil
+	edpc.er, err = NewEDPCer(addr)
+	return edpc, err
 }
 
 type journalHandler = func(*EDPC, watched.JounalEvent) error
@@ -58,4 +60,11 @@ func (edpc *EDPC) Close() error {
 		log.Errore(err)
 	}
 	return err
+}
+
+func (edpc *EDPC) needCmdr() error {
+	if edpc.Cmdr.Unknown() {
+		return errors.New("No active commander")
+	}
+	return nil
 }

@@ -19,8 +19,9 @@ var (
 	)
 
 	config = struct {
-		Log     string
-		EDEHNet edehnet.Receiver
+		Log       string
+		EDEHNet   edehnet.Receiver
+		ERAddress string
 	}{
 		EDEHNet: edehnet.Receiver{
 			Listen: ":1337",
@@ -29,6 +30,9 @@ var (
 )
 
 func flags() {
+	flag.StringVar(&config.ERAddress, "r", config.ERAddress,
+		`Set address of EDPCer server`,
+	)
 	flag.StringVar(&config.EDEHNet.Listen, "l", config.EDEHNet.Listen,
 		`Set listening address`,
 	)
@@ -52,7 +56,7 @@ func main() {
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc, err := internal.NewEDPC()
+	edpc, err := internal.NewEDPC(config.ERAddress)
 	if err != nil {
 		log.Fatale(err)
 	}

@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option go_package = "github.com/CmdrVasquess/edpc/edpcrpc";
+
+// package edpc;
+
+service EDPCer {
+  rpc Commander (CommanderRequest) returns (ReplyHeader);
+  rpc Docked (DockedRequest) returns (ReplyHeader);
+}
+
+message RequestHeader {
+  string accessToken = 1;
+  string fid = 2;
+}
+
+message ReplyHeader {
+  string redirect = 1;
+}
+
+message CommanderRequest {
+  RequestHeader hdr = 1;
+  string cmdr = 3;
+}
+
+message DockedRequest {
+  RequestHeader hdr = 1;
+  uint64 addr = 2;
+  string system = 3;
+  string port = 4;
+}
