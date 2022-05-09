@@ -21,10 +21,12 @@ var (
 	)
 
 	config = struct {
-		Log        string
-		JournalDir string
-		JDirWatch  jdir.Options
-		ERAddress  string
+		Log         string
+		JournalDir  string
+		JDirWatch   jdir.Options
+		ERAddress   string
+		AccessToken string
+		InsecureER  bool
 	}{
 		JournalDir: findJournals(),
 	}
@@ -66,10 +68,13 @@ func main() {
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc, err := internal.NewEDPC(config.ERAddress)
+	edpc, err := internal.NewEDPC(config.ERAddress, config.AccessToken, config.InsecureER)
 	if err != nil {
 		log.Fatale(err)
 	}
+	log.Infoa("Local data in `dir`", edpc.App.LocalData())
+	log.Infoa("Roaming data in `dir`", edpc.App.RoamingData())
+	log.Infoa("EDPC `event receiver`", config.ERAddress)
 	watchED := jdir.NewEvents(config.JournalDir, edpc, &config.JDirWatch)
 	var latestJournal string
 	go watchED.Start(latestJournal)

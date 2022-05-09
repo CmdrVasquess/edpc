@@ -19,9 +19,11 @@ var (
 	)
 
 	config = struct {
-		Log       string
-		EDEHNet   edehnet.Receiver
-		ERAddress string
+		Log         string
+		EDEHNet     edehnet.Receiver
+		ERAddress   string
+		AccessToken string
+		InsecureER  bool
 	}{
 		EDEHNet: edehnet.Receiver{
 			Listen: ":1337",
@@ -56,7 +58,7 @@ func main() {
 	}
 	flags()
 	c4hgol.SetLevel(logCfg, config.Log, nil)
-	edpc, err := internal.NewEDPC(config.ERAddress)
+	edpc, err := internal.NewEDPC(config.ERAddress, config.AccessToken, config.InsecureER)
 	if err != nil {
 		log.Fatale(err)
 	}

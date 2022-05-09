@@ -20,6 +20,6 @@ func jehCommander(edpc *EDPC, rawe watched.JounalEvent) error {
 	if err = edpc.Cmdr.SwitchTo(edpc.App, evt.FID, evt.Name); err != nil {
 		return err
 	}
-	err = edpc.er.Commander(evt.FID, evt.Name)
+	err = edpc.er.Commander(evt.Time, evt.FID, evt.Name)
 	return err
 }
