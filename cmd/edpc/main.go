@@ -7,7 +7,7 @@ import (
 	"runtime"
 
 	"git.fractalqb.de/fractalqb/c4hgol"
-	"git.fractalqb.de/fractalqb/qbsllm"
+	"git.fractalqb.de/fractalqb/qblog"
 	"github.com/CmdrVasquess/watched/jdir"
 
 	"github.com/CmdrVasquess/edpc/internal"
@@ -15,10 +15,8 @@ import (
 )
 
 var (
-	log    = qbsllm.New(qbsllm.Lnormal, "edpc", nil, nil)
-	logCfg = c4hgol.Config(qbsllm.NewConfig(log),
-		internal.LogCfg,
-	)
+	log    = qblog.New("edpc")
+	logCfg = c4hgol.NewLogGroup(log, "", internal.LogCfg)
 
 	config = struct {
 		Log         string
@@ -48,7 +46,7 @@ func flags() {
 	flag.StringVar(&config.ERAddress, "r", config.ERAddress,
 		`Set address of EDPCer server`,
 	)
-	flag.StringVar(&config.Log, "log", "", c4hgol.LevelCfgDoc(nil))
+	flag.StringVar(&config.Log, "log", "", c4hgol.FlagDoc())
 	cfgDump := flag.Bool("cfg-dump", false, "Dump current configuration to stdout")
 	flag.Parse()
 	if *cfgDump {
@@ -67,14 +65,14 @@ func main() {
 		log.Fatale(err)
 	}
 	flags()
-	c4hgol.SetLevel(logCfg, config.Log, nil)
+	c4hgol.Configure(logCfg, config.Log, true)
 	edpc, err := internal.NewEDPC(config.ERAddress, config.AccessToken, config.InsecureER)
 	if err != nil {
 		log.Fatale(err)
 	}
-	log.Infoa("Local data in `dir`", edpc.App.LocalData())
-	log.Infoa("Roaming data in `dir`", edpc.App.RoamingData())
-	log.Infoa("EDPC `event receiver`", config.ERAddress)
+	log.Infov("Local data in `dir`", edpc.App.LocalData())
+	log.Infov("Roaming data in `dir`", edpc.App.RoamingData())
+	log.Infov("EDPC `event receiver`", config.ERAddress)
 	watchED := jdir.NewEvents(config.JournalDir, edpc, &config.JDirWatch)
 	var latestJournal string
 	go watchED.Start(latestJournal)
@@ -84,5 +82,5 @@ func main() {
 	log.Infos("shutting down…")
 	watchED.Stop()
 	edpc.Close()
-	log.Infoa("o7")
+	log.Infos("o7")
 }

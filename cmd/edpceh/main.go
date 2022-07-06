@@ -6,17 +6,15 @@ import (
 	"runtime"
 
 	"git.fractalqb.de/fractalqb/c4hgol"
-	"git.fractalqb.de/fractalqb/qbsllm"
+	"git.fractalqb.de/fractalqb/qblog"
 	"github.com/CmdrVasquess/edpc/internal"
 	"github.com/CmdrVasquess/edpc/internal/cmds"
 	"github.com/CmdrVasquess/watched/edeh/edehnet"
 )
 
 var (
-	log    = qbsllm.New(qbsllm.Lnormal, "edpceh", nil, nil)
-	logCfg = c4hgol.Config(qbsllm.NewConfig(log),
-		internal.LogCfg,
-	)
+	log    = qblog.New("edpceh")
+	logCfg = c4hgol.NewLogGroup(log, "", internal.LogCfg)
 
 	config = struct {
 		Log         string
@@ -38,7 +36,7 @@ func flags() {
 	flag.StringVar(&config.EDEHNet.Listen, "l", config.EDEHNet.Listen,
 		`Set listening address`,
 	)
-	flag.StringVar(&config.Log, "log", "", c4hgol.LevelCfgDoc(nil))
+	flag.StringVar(&config.Log, "log", "", c4hgol.FlagDoc())
 	cfgDump := flag.Bool("cfg-dump", false, "Dump current configuration to stdout")
 	flag.Parse()
 	if *cfgDump {
@@ -57,7 +55,7 @@ func main() {
 		log.Fatale(err)
 	}
 	flags()
-	c4hgol.SetLevel(logCfg, config.Log, nil)
+	c4hgol.Configure(logCfg, config.Log, true)
 	edpc, err := internal.NewEDPC(config.ERAddress, config.AccessToken, config.InsecureER)
 	if err != nil {
 		log.Fatale(err)

@@ -20,9 +20,9 @@ func jehDocked(edpc *EDPC, rawe watched.JounalEvent) error {
 	if err != nil {
 		return err
 	}
-	log.Warna("TODO: docked `at` `in`", evt.StationName, evt.StarSystem)
+	log.Warnv("TODO: docked `at` `in`", evt.StationName, evt.StarSystem)
 	err = edpc.er.Docked(evt.Time, edpc.Cmdr.FID,
-		evt.SystemAddress,
+		//evt.SystemAddress,
 		evt.StarSystem,
 		evt.StationName,
 	)

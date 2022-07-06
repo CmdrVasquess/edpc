@@ -25,7 +25,7 @@ type Commander struct {
 func (cmdr *Commander) Unknown() bool { return cmdr.FID == "" }
 
 func (cmdr *Commander) SwitchTo(p ospath.AppPaths, fid, name string) error {
-	log.Infoa("Switch to `cmdr` with `FID`", name, fid)
+	log.Infov("Switch to `cmdr` with `FID`", name, fid)
 	if !cmdr.Unknown() {
 		filename := p.RoamingData(cmdrFile(cmdr.FID, cmdr.Name))
 		err := cmdr.save(filename)

@@ -5,14 +5,13 @@ import (
 	"os/user"
 
 	"git.fractalqb.de/fractalqb/pack/ospath"
-	"github.com/CmdrVasquess/edpc/edpcrpc"
 	"github.com/CmdrVasquess/watched"
 )
 
 type EDPC struct {
 	App  ospath.App
 	Cmdr Commander
-	er   *edpcrpc.EDPCer
+	er   *EDPCer
 	// TODO Last Event Serial Number
 }
 
@@ -27,7 +26,11 @@ func NewEDPC(addr, accsTok string, insec bool) (*EDPC, error) {
 			"fqb", "edpc",
 		),
 	}
-	edpc.er, err = edpcrpc.NewEDPCer(addr, accsTok, insec)
+	edpc.er, err = NewEDPCer(addr)
+	if err != nil {
+		return nil, err
+	}
+	edpc.er.Open(addr, insec)
 	return edpc, err
 }
 
